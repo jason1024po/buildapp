@@ -26,7 +26,7 @@ elif in_type == "12":
     AndroidBuild("android").build_to_ali_oss()
 elif in_type == "21":
     print("21. ipa ➣ 蒲公英 ➣ 钉钉")
-    IOSBuild("ios").build_test()
+    IOSBuild("ios").build_to_pgy()
 elif in_type == "22":
     print("22. ipa ➣ TestFlight ➣ 钉钉")
     IOSBuild("ios").build_to_app_store()
