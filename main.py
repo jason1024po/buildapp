@@ -1,7 +1,7 @@
 import sys
 
-from src.build.build import Build
-from src.build.project import ProjectType
+from src.project.build import Build
+from src.project.project import ProjectType
 
 build = Build()
 print("你的项目为：", build.project.project_type.value)
