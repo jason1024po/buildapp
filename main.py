@@ -1,10 +1,7 @@
 import sys
 
-from src.android.android_build import AndroidBuild
 from src.build.build import Build
 from src.build.project import ProjectType
-from src.ios.ios_build import IOSBuild
-
 
 build = Build()
 print("你的项目为：", build.project.project_type.value)
