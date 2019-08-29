@@ -13,7 +13,7 @@ from src.android.android_project import AndroidProject
 # 打包 Android 相关
 class AndroidBuild:
     # 默认打包目录
-    apk_dir = "app/build/outputs/apk/release"
+    android_release_dir = ""
     # 默认打包名称
     default_apk_name = "app-release.apk"
     # 默认打包路径
@@ -22,29 +22,30 @@ class AndroidBuild:
     # 加载 Android 项目信息
     android_project = None
 
-    # 新的 apk 包名
-    new_apk_name = ""
-
-    # 新的 apk 路径
-    new_apk_path = ""
-
-    def __init__(self, path="android"):
+    def __init__(self, path=".", android_release_dir="app/build/outputs/apk/release"):
         self.path = path
+        self.android_release_dir = android_release_dir
         self.android_project = AndroidProject(self.path)
-        self.default_apk_path = os.path.join(self.path, self.apk_dir, self.default_apk_name)
-        self.new_apk_name = self.android_project.get_format_apk_name()
-        self.new_apk_path = os.path.join(self.path, self.apk_dir, self.new_apk_name)
+        self.default_apk_path = os.path.join(self.android_release_dir, self.default_apk_name)
 
     # 重命名
     def _rename_apk(self):
-        os.rename(self.default_apk_path, self.new_apk_path)
+        os.rename(self.default_apk_path, self.get_new_apk_path())
+
+    # 新包名
+    def get_new_apk_name(self):
+        return self.android_project.get_format_apk_name()
+
+    # 新包名路劲
+    def get_new_apk_path(self):
+        return os.path.join(self.android_release_dir, self.get_new_apk_name())
 
     # 清除旧包
     def _remove_all(self):
-        print(self.apk_dir)
-        if os.path.isdir(self.apk_dir):
-            for name in os.listdir(self.apk_dir):
-                os.remove(os.path.join(self.apk_dir, name))
+        print(self.android_release_dir)
+        if os.path.isdir(self.android_release_dir):
+            for name in os.listdir(self.android_release_dir):
+                os.remove(os.path.join(self.android_release_dir, name))
 
     def build_apk(self):
         if os.system("cd {} && ./gradlew assembleRelease".format(self.path)):
@@ -56,7 +57,7 @@ class AndroidBuild:
     def build_to_pgy(self):
         if self.build():
             # 上传到蒲公英
-            upload_to_pgy(self.new_apk_path)
+            upload_to_pgy(self.get_new_apk_path())
         else:
             print("打包失败了！")
 
@@ -64,8 +65,8 @@ class AndroidBuild:
     def build_to_ali_oss(self):
         if self.build():
             # 上传到阿里云
-            name = os.path.join(self.android_project.get_application_id_suffix(), self.new_apk_name)
-            url = put_file_to_ali_oss(name, self.new_apk_path)
+            name = os.path.join(self.android_project.get_application_id_suffix(), self.get_new_apk_name())
+            url = put_file_to_ali_oss(name, self.get_new_apk_path())
             if url:
                 print("上传成功:", url)
                 # 发送消息到钉钉

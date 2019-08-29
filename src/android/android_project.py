@@ -36,28 +36,24 @@ class AndroidProject:
         path = os.path.join(self.path, self._app_build_gradle_path)
 
         # 应用名称
-        with open(self.get_strings_xml_path(), 'r', errors="ignore") as f:
-            con = f.read()
-            self.application_name = re.search(r'<string name="app_name">(.+)</string>', con).group(1)
+        try:
+            with open(self.get_strings_xml_path()) as f:
+                con = f.read()
+                self.application_name = re.search(r'<string name="app_name">(.+)</string>', con).group(1)
+        except IOError:
+            with open(self.get_manifest_xml_path()) as f:
+                con = f.read()
+                result = re.search(r'android:label="(.+)"', con)
+                self.version_code = result and result.group(1) or "未知名称"
+
         # 应用 id 、版本信息
         with open(path, 'r', errors="ignore") as f:
             con = f.read()
             self.application_id = re.search(r'applicationId\s\"(.*.\w+)\"', con).group(1)
-            self.version_name = re.search(r'versionName\s"([.|\d]+)"', con).group(1)
-            self.version_code = re.search(r'versionCode\s(\d+)', con).group(1)
-        # 获取版本信息Flutter
-        if not "isFlutter":
-            read_path = os.path.join(self.path, self._local_properties_path)
-            with open(read_path, "r", errors="ignore") as f:
-                values = {}
-                for line in f.readlines():
-                    arr = line.strip("\n").split("=")
-                    if len(arr) > 1:
-                        values[arr[0]] = arr[1]
-                if "flutter.versionCode" in values:
-                    self.version_code = values["flutter.versionCode"]
-                if "flutter.versionName" in values:
-                    self.version_name = values["flutter.versionName"]
+            result = re.search(r'versionName\s"([.|\d]+)"', con)
+            self.version_name = result and result.group(1) or "1.0"
+            result = re.search(r'versionCode\s(\d+)', con)
+            self.version_code = result and result.group(1) or "1"
 
     # 格式化apk输出名称
     def get_format_apk_name(self):
@@ -82,4 +78,9 @@ class AndroidProject:
 
     # Android 名称 配置路径
     def get_strings_xml_path(self):
+        print("----", os.getcwd(), self.path)
         return os.path.join(self.path, 'app/src/main/res/values/strings.xml')
+
+    # AndroidManifest 路径
+    def get_manifest_xml_path(self):
+        return os.path.join(self.path, 'app/src/main/AndroidManifest.xml')

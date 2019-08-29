@@ -1,8 +1,6 @@
 import os
 import sys
 
-import oss2
-
 from src.config.config import *
 
 
@@ -16,6 +14,7 @@ class AliOSS:
         self.end_point = end_point
         self.bucket = bucket
         # 初始化阿里 oss
+        import oss2
         _auth = oss2.Auth(access_key_id, access_key_secret)
         self._bucket = oss2.Bucket(_auth, ALI_OSS_END_POINT, bucket)
 
