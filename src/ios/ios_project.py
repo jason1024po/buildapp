@@ -43,9 +43,11 @@ class IOSProject:
             self.application_name = re.search(pattern, info_con).group(1)
             # 3. 读取版本号
             pattern = r"<key>CFBundleShortVersionString</key>[\s\n]*<string>([\.|\S]+)</string>"
-            self.version_name = re.search(pattern, info_con).group(1)
+            result = re.search(pattern, info_con)
+            self.version_name = result and result.group(1) or "1.0"
             pattern = r"<key>CFBundleVersion</key>[\s\n]*<string>([\.|\S]+)</string>"
-            self.version_code = re.search(pattern, info_con).group(1)
+            result = re.search(pattern, info_con)
+            self.version_code = result and result.group(1) or "1"
             # 4. 先读取工程信息
             self.load_xcode_project_info()
             # 5. 再读取应用 id

@@ -6,7 +6,7 @@ from .project import FlutterProject
 class FlutterBuild:
     android_release_dir = "build/app/outputs/apk/release"
 
-    def __init__(self, path):
+    def __init__(self, path="./"):
         self.project = FlutterProject(path)
 
     def build_apk(self):
