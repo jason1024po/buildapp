@@ -45,9 +45,10 @@ class IOSBuild:
         if self.export_archive() and self.export_ipa():
             print("正在上传到蒲公英...")
             upload_to_pgy(self.get_export_ipa_path())
+            return True
         else:
             print("打包失败~")
-        print("执行完成")
+            return False
 
     # 上传到苹果
     def build_to_app_store(self):
@@ -56,7 +57,7 @@ class IOSBuild:
             print("导出失败了~")
             app_name = self.project.application_name
             send_prod_fault_message(app_name, "iOS", self.project.version_name, self.project.version_code, "无")
-            return
+            return False
         ipa_path = self.get_export_ipa_path()
         success, msg = upload_to_app_store(ipa_path, APPLE_USERNAME, APPLE_PASSWORD)
         if success:
@@ -74,9 +75,11 @@ class IOSBuild:
                 version_name = self.project.version_name
                 version_code = self.project.version_code
                 send_prod_message(app_name, version_name, version_code, url)
+                return True
         else:
             app_name = self.project.application_name
             send_prod_fault_message(app_name, "iOS", self.project.version_name, self.project.version_code, msg)
+            return False
 
     # 导出archive
     def export_archive(self):

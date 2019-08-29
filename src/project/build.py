@@ -19,7 +19,8 @@ class Build:
         if self.project.project_type == ProjectType.Flutter:
             build.android_project.version_name = self.flutter_build.project.version_name
             build.android_project.version_code = self.flutter_build.project.version_code
-        build.build_to_pgy()
+        if not build.build_to_pgy():
+            exit(1)
 
     # 上传 release 包到阿里 oss
     def android_release_to_oss2(self):
@@ -27,7 +28,8 @@ class Build:
         if self.project.project_type == ProjectType.Flutter:
             build.android_project.version_name = self.flutter_build.project.version_name
             build.android_project.version_code = self.flutter_build.project.version_code
-        build.build_to_ali_oss()
+        if not build.build_to_ali_oss():
+            exit(1)
 
     # 上传 debug 包到蒲公英
     def ios_debug_to_gpy(self):
@@ -40,7 +42,8 @@ class Build:
             build.project.version_name = self.flutter_build.project.version_name
             build.project.version_code = self.flutter_build.project.version_code
             self.flutter_build.build_ios()
-        build.build_to_pgy()
+        if not build.build_to_pgy():
+            exit(1)
 
     # 上传正式包到苹果
     def ios_release_to_test_flight(self):
@@ -49,7 +52,8 @@ class Build:
             build.project.version_name = self.flutter_build.project.version_name
             build.project.version_code = self.flutter_build.project.version_code
             self.flutter_build.build_ios()
-        build.build_to_app_store()
+        if not build.build_to_app_store():
+            exit(1)
 
     # 处理 flutter or rn 原生工程路径
     def flutter_or_rn_path(self,  path):

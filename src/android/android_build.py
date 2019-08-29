@@ -58,8 +58,10 @@ class AndroidBuild:
         if self.build():
             # 上传到蒲公英
             upload_to_pgy(self.get_new_apk_path())
+            return True
         else:
             print("打包失败了！")
+            return False
 
     # 上传到阿里 oss
     def build_to_ali_oss(self):
@@ -74,12 +76,15 @@ class AndroidBuild:
                 version_name = self.android_project.version_name
                 version_code = self.android_project.version_code
                 send_prod_message(app_name, version_name, version_code, url)
+                return True
             else:
                 print("上传失败：", url)
                 self.send_fault_message()
+                return False
         else:
             print("打包失败了！")
             self.send_fault_message()
+            return False
 
     # 发送失败消息
     def send_fault_message(self):
