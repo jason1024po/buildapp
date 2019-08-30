@@ -10,7 +10,7 @@
 ### 安装
 使用Python3编写，所以得自行安装相关环境<br/>
 目前项目只在Mac上面跑过 <br/>
-安装依赖 `pipenv sync` <br/>
+安装依赖 `pipenv sync`  `pip3 install requests`  `pip3 install oss2`<br/>
 我不是Python大神，如果有安装问题大家自行根据错误来解决吧。
 ### 配置*
 打开src/config/config.py进行配置 <br/>
