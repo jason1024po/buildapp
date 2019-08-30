@@ -47,7 +47,7 @@ class Build:
 
     # 上传正式包到苹果
     def ios_release_to_test_flight(self):
-        build = IOSBuild(self.iflutter_or_rn_path("ios"))
+        build = IOSBuild(self.flutter_or_rn_path("ios"))
         if self.project.project_type == ProjectType.Flutter:
             build.project.version_name = self.flutter_build.project.version_name
             build.project.version_code = self.flutter_build.project.version_code
