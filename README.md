@@ -5,6 +5,7 @@
 * iOS上传到TestFlight
 * 发送消息到钉钉
 * 自动读取版本号来重命名上传包的文件名
+* [这里查看运行效果图](https://github.com/xushengjiang0/buildapp/raw/master/doc/images/img1.png)
 
 ### 安装
 使用Python3编写，所以得自行安装相关环境<br/>
