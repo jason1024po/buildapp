@@ -11,9 +11,8 @@ class ProjectType(Enum):
 
 
 class Project:
-    project_type = ProjectType.Unknown
-
     def __init__(self):
+        self.project_type = ProjectType.Unknown
         self.check_project_type()
 
     # 检查项目类型
@@ -28,7 +27,6 @@ class Project:
             # Android 项目
             self.project_type = ProjectType.NativeAndroid
         else:
-            self.project_type = ProjectType.Unknown
             # 判断是否 ios 项目
             items = os.listdir(".")
             for item in items:
