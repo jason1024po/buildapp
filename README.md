@@ -10,7 +10,8 @@
 ### 安装
 使用Python3编写，所以得自行安装相关环境<br/>
 目前项目只在Mac上面跑过 <br/>
-安装依赖 `pipenv sync`  `pip3 install requests`  `pip3 install oss2`<br/>
+安装依赖 `pip3 install requests`  `pip3 install oss2`<br/>
+或者通过 `pipenv shell` <br/>
 我不是Python大神，如果有安装问题大家自行根据错误来解决吧。
 ### 配置*
 打开src/config/config.py进行配置 <br/>
@@ -20,7 +21,8 @@
 *以上两项为必须配置，网上都相关教程，自行配置
 ### 使用
 克隆本项目到你的工程中(也可以是其它地方) 然后运行： <br/>
- `python3 ./buildapp/main.py` <br/>
+ `python3 ./buildapp/main.py` // 自动从当前目录然or上级查找项目 <br/>
+ `python3 main.py 你的项目路径` // 或者指定目录路径 <br/>
 根据提示选择下面的打包方式<br/>
  11. apk ➣ 蒲公英 ➣ 钉钉<br/>
  12. apk ➣ 阿里云 ➣ 钉钉<br/>
