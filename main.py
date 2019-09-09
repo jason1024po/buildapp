@@ -30,23 +30,17 @@ if in_path:
     # 切换目录
     os.chdir(in_path)
     build = Build()
-    # 检查项目
-    if build.project.project_type == ProjectType.Unknown:
-        print("项目路径错误1")
-        exit(1)
 else:
     # 2. 采用当前目录
     build = Build()
     if build.project.project_type == ProjectType.Unknown:
-        print("项目路径错误2")
-        exit(1)
-    else:
         # 3. 采用上级目录
         os.chdir("..")
         build = Build()
-        if build.project.project_type == ProjectType.Unknown:
-            print("项目路径错误3")
-            exit(1)
+
+if build.project.project_type == ProjectType.Unknown:
+    print("项目路径错误")
+    exit(1)
 
 # 项目路径正确
 print("你的项目为：", build.project.project_type.value)
