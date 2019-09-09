@@ -1,22 +1,51 @@
+import os
 import sys
 
 from src.project.build import Build
 from src.project.project import ProjectType
 
-build = Build()
-print("你的项目为：", build.project.project_type.value)
 
-if build.project.project_type == ProjectType.Unknown:
-    print("请切换到项目路径后运行本程序")
-    exit(1)
+"""
+    in_path : 项目路径 
+            1.接收传入的路径
+            2.如果没有传入，采用当前路径
+            3.如果以上路径不支，查找上线目录
+    in_type : 接收传入的类型，不传的话会提示选择
+"""
 
-# 接收传入的类型
+# 处理输入的参数
+in_path = ""
 in_type = ""
 for item in sys.argv:
-    if "type" in item:
+    if os.path.isdir(item):
+        in_path = item
+    elif "type" in item:
         arr = item.split('=')
         if len(arr) > 1:
             in_type = arr[1].strip(" ")
+
+
+# 1. 采用传入的目录
+if in_path:
+    # 切换目录
+    os.chdir(in_path)
+    build = Build()
+else:
+    # 2. 采用当前目录
+    build = Build()
+    if build.project.project_type == ProjectType.Unknown:
+        # 3. 采用上级目录
+        os.chdir("..")
+        build = Build()
+
+if build.project.project_type == ProjectType.Unknown:
+    print("项目路径错误")
+    exit(1)
+
+# 项目路径正确
+print("你的项目为：", build.project.project_type.value)
+
+
 # 如果没有传入就提醒输入
 if not in_type:
     s = input("""请输入要操作的类型：
