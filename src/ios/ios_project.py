@@ -56,21 +56,12 @@ class IOSProject:
             self.is_load_error = not len(
                 self.application_id) or not len(self.application_name)
 
-    # 格式化apk输出名称
+    # 格式化ipa输出名称
     def get_format_ipa_name(self):
         if not len(self._format_ipa_name):
-            # 命名规则 = 包名最后一项 + 版本号 + 时间 + apk
-            prefix = (
-                    self.get_application_id_suffix()
-                    + "-"
-                    + self.version_name
-                    + "_"
-                    + self.version_code
-                    + "_"
-            )
-            self._format_ipa_name = (
-                    prefix + time.strftime("%Y%m%d_%H.%M", time.localtime()) + ".ipa"
-            )
+            # 命名规则 = 包名最后一项 + 版本号 + 时间 + ipa
+            prefix = (self.get_application_id_suffix() + "-" + self.version_name + "_" + self.version_code + "_")
+            self._format_ipa_name = prefix + time.strftime("%Y%m%d_%H.%M", time.localtime()) + ".ipa"
         return self._format_ipa_name
 
     # 加载 xcode 工程信息
