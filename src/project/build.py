@@ -17,18 +17,24 @@ class Build:
     def android_release_to_pgy(self):
         build = AndroidBuild(self.flutter_or_rn_path("android"), self.get_outputs_apk_dir())
         if self.project.project_type == ProjectType.Flutter:
-            build.android_project.version_name = self.flutter_build.project.version_name
-            build.android_project.version_code = self.flutter_build.project.version_code
-        if not build.build_to_pgy():
+            build.project.version_name = self.flutter_build.project.version_name
+            build.project.version_code = self.flutter_build.project.version_code
+        try:
+            build.build_to_pgy()
+        except Exception as e:
+            print(e)
             exit(1)
 
     # 上传 release 包到阿里 oss
     def android_release_to_oss2(self):
         build = AndroidBuild(self.flutter_or_rn_path("android"), self.get_outputs_apk_dir())
         if self.project.project_type == ProjectType.Flutter:
-            build.android_project.version_name = self.flutter_build.project.version_name
-            build.android_project.version_code = self.flutter_build.project.version_code
-        if not build.build_to_ali_oss():
+            build.project.version_name = self.flutter_build.project.version_name
+            build.project.version_code = self.flutter_build.project.version_code
+        try:
+            build.build_to_ali_oss()
+        except Exception as e:
+            print(e)
             exit(1)
 
     # 上传 debug 包到蒲公英
@@ -42,7 +48,10 @@ class Build:
             build.project.version_name = self.flutter_build.project.version_name
             build.project.version_code = self.flutter_build.project.version_code
             self.flutter_build.build_ios()
-        if not build.build_to_pgy():
+        try:
+            build.build_to_pgy()
+        except Exception as e:
+            print(e)
             exit(1)
 
     # 上传正式包到苹果
@@ -52,7 +61,10 @@ class Build:
             build.project.version_name = self.flutter_build.project.version_name
             build.project.version_code = self.flutter_build.project.version_code
             self.flutter_build.build_ios()
-        if not build.build_to_app_store():
+        try:
+            build.build_to_app_store()
+        except Exception as e:
+            print(e)
             exit(1)
 
     # 处理 flutter or rn 原生工程路径

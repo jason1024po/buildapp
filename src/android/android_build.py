@@ -3,14 +3,17 @@ import os
 
 from pathlib import Path
 
-from src.ali.oss import put_file_to_ali_oss
-from src.dingding.dingding import send_prod_message, send_prod_fault_message
-from src.pgyer.pgyer import upload_to_pgy
+from src.dingding.dingding import DingDing
+from src.error.error import BuildException
+from src.oss.oss import OSS
 
 from src.android.android_project import AndroidProject
 
 
 # 打包 Android 相关
+from src.pgyer.pgyer import PGY
+
+
 class AndroidBuild:
     # 默认打包目录
     android_release_dir = ""
@@ -19,98 +22,90 @@ class AndroidBuild:
     # 默认打包路径
     default_apk_path = ""
 
-    # 加载 Android 项目信息
-    android_project = None
-
     def __init__(self, path=".", android_release_dir="app/build/outputs/apk/release"):
         self.path = path
         self.android_release_dir = android_release_dir
-        self.android_project = AndroidProject(self.path)
+        # 加载 Android 项目信息
+        self.project = AndroidProject(self.path)
         self.default_apk_path = os.path.join(self.android_release_dir, self.default_apk_name)
 
-    # 重命名
-    def _rename_apk(self):
-        os.rename(self.default_apk_path, self.get_new_apk_path())
+    # 上传到蒲公英
+    def build_to_pgy(self):
+        try:
+            self.__build()
+            # 上传到蒲公英
+            result = PGY.upload(self.__get_new_apk_path())
+            DingDing.send_with_pgy_response(result)
+        except BuildException as e:
+            self.__send_failure_message(e.message)
+            raise e
+
+    # 上传到阿里 oss
+    def build_to_ali_oss(self):
+        try:
+            self.__build()
+            # 上传到阿里云
+            name = os.path.join(self.project.get_application_id_suffix(), self.__get_new_apk_name())
+            url = OSS.put_file(name, self.__get_new_apk_path())
+            print("上传成功:", url)
+            # 发送消息到钉钉
+            self.__send_success_message(url)
+            return True
+        except BuildException as e:
+            self.__send_failure_message(e.message)
+            raise e
+
+    # 发送成功消息
+    def __send_success_message(self, data):
+        app_name = self.project.application_name
+        version_name = self.project.version_name
+        version_code = self.project.version_code
+        DingDing.send_prod_message(app_name, version_name, version_code, data)
+
+    # 发送失败消息
+    def __send_failure_message(self, message='无'):
+        app_name = self.project.application_name
+        version_name = self.project.version_name
+        version_code = self.project.version_code
+        DingDing.send_prod_failure_message(app_name, "Android", version_name, version_code, message)
+
+    # 清理并打包 apk
+    def __build(self):
+        if self.project.is_error:
+            raise BuildException("Android工程目录错误")
+        # 1. 删除旧包
+        print("正在清除旧包...")
+        self.__remove_all()
+        # 2. 打包apk
+        print("开始打包apk...")
+        self.__build_apk()
+        print(self.default_apk_path)
+        # 3. 判断文件是否成功
+        if not Path(self.default_apk_path).is_file():
+            raise BuildException("文件不存在，打包失败")
+        # 4. 重命名
+        self.__rename_apk()
 
     # 新包名
-    def get_new_apk_name(self):
-        return self.android_project.get_format_apk_name()
+    def __get_new_apk_name(self):
+        return self.project.get_format_apk_name()
 
     # 新包名路劲
-    def get_new_apk_path(self):
-        return os.path.join(self.android_release_dir, self.get_new_apk_name())
+    def __get_new_apk_path(self):
+        return os.path.join(self.android_release_dir, self.__get_new_apk_name())
+
+    # 重命名
+    def __rename_apk(self):
+        os.rename(self.default_apk_path, self.__get_new_apk_path())
+
+    # 打包 apk
+    def __build_apk(self):
+        if os.system("cd {} && ./gradlew assembleRelease".format(self.path)):
+            raise BuildException("gradle 打包失败~")
 
     # 清除旧包
-    def _remove_all(self):
+    def __remove_all(self):
         print(self.android_release_dir)
         if os.path.isdir(self.android_release_dir):
             for name in os.listdir(self.android_release_dir):
                 os.remove(os.path.join(self.android_release_dir, name))
-
-    def build_apk(self):
-        if os.system("cd {} && ./gradlew assembleRelease".format(self.path)):
-            print("打包失败~")
-            return False
-        return True
-
-    # 上传到蒲公英
-    def build_to_pgy(self):
-        if self.build():
-            # 上传到蒲公英
-            upload_to_pgy(self.get_new_apk_path())
-            return True
-        else:
-            print("打包失败了！")
-            return False
-
-    # 上传到阿里 oss
-    def build_to_ali_oss(self):
-        if self.build():
-            # 上传到阿里云
-            name = os.path.join(self.android_project.get_application_id_suffix(), self.get_new_apk_name())
-            url = put_file_to_ali_oss(name, self.get_new_apk_path())
-            if url:
-                print("上传成功:", url)
-                # 发送消息到钉钉
-                app_name = self.android_project.application_name
-                version_name = self.android_project.version_name
-                version_code = self.android_project.version_code
-                send_prod_message(app_name, version_name, version_code, url)
-                return True
-            else:
-                print("上传失败：", url)
-                self.send_fault_message()
-                return False
-        else:
-            print("打包失败了！")
-            self.send_fault_message()
-            return False
-
-    # 发送失败消息
-    def send_fault_message(self):
-        app_name = self.android_project.application_name
-        version_name = self.android_project.version_name
-        version_code = self.android_project.version_code
-        send_prod_fault_message(app_name, "Android", version_name, version_code, "无")
-
-    # 清理并打包 apk
-    def build(self):
-        if self.android_project.is_error:
-            print("Android工程目录错误")
-            return False
-        # 删除旧包
-        print("正在清除旧包...")
-        self._remove_all()
-
-        # 打包apk
-        print("开始打包apk...")
-        if not self.build_apk():
-            return False
-        print(self.default_apk_path)
-        # 判断文件是否成功
-        if not Path(self.default_apk_path).is_file():
-            print("文件不存在，打包失败")
-            return False
-        else:
-            self._rename_apk()
-            return True
