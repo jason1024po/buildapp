@@ -43,7 +43,7 @@ class Build:
 
     # 上传 adhoc 包到蒲公英
     def ios_ad_hoc_to_pgy(self):
-        build = IOSBuild(self.iflutter_or_rn_path("ios"))
+        build = IOSBuild(self.flutter_or_rn_path("ios"))
         if self.project.project_type == ProjectType.Flutter:
             build.project.version_name = self.flutter_build.project.version_name
             build.project.version_code = self.flutter_build.project.version_code

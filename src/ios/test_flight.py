@@ -12,6 +12,9 @@ class TestFlight:
     # 上传到 TestFlight
     @classmethod
     def upload(cls, ipa: str, user_name: str, password: str):
+        # 0. 检查帐号
+        if not user_name or not password:
+            raise BuildException("没有配置apple帐号")
         # 1. 验证ipa
         cls.__verify_ipa(ipa, user_name, password)
         # 2. 开始上传

@@ -114,6 +114,9 @@ class DingDing:
 
     @classmethod
     def __send_message(cls, body, token=DD_ACCESS_TOKEN_DEV):
+        if not token:
+            print("未配置钉钉token~")
+            return
         headers = {"Content-Type": "application/json"}
         response = requests.post(url=cls.end_point + token, headers=headers, data=json.dumps(body))
         result = response.json()
