@@ -58,7 +58,9 @@ class TestFlight:
         print(raw)
         if "Code=1091" in raw:
             return "版本号冲突，请修改版本号后再试"
-        if "Code=-21026" in raw:
+        elif "Code=-21026" in raw:
             return "苹果无法验证身份~"
+        elif "Code=-19000" in raw:
+            return "网络连接到苹果失败"
         else:
             return "上传到苹果失败,请检查~"
