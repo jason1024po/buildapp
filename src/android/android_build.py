@@ -45,7 +45,7 @@ class AndroidBuild:
         try:
             self.__build()
             # 上传到阿里云
-            name = os.path.join(self.project.get_application_id_suffix(), self.__get_new_apk_name())
+            name = os.path.join(self.project.short_application_id, self.__get_new_apk_name())
             url = OSS.put_file(name, self.__get_new_apk_path())
             print("上传成功:", url)
             # 发送消息到钉钉
@@ -71,8 +71,6 @@ class AndroidBuild:
 
     # 清理并打包 apk
     def __build(self):
-        if self.project.is_error:
-            raise BuildException("Android工程目录错误")
         # 1. 删除旧包
         print("正在清除旧包...")
         self.__remove_all()
@@ -88,7 +86,7 @@ class AndroidBuild:
 
     # 新包名
     def __get_new_apk_name(self):
-        return self.project.get_format_apk_name()
+        return self.project.format_apk_name
 
     # 新包名路劲
     def __get_new_apk_path(self):

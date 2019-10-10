@@ -82,8 +82,8 @@ class IOSBuild:
         DingDing.send_prod_message(app_name, version_name, version_code, data)
 
     def __put_success_message(self):
-        ipa_name = self.project.get_format_ipa_name()
-        name = os.path.join(self.project.get_application_id_suffix(), "ipa", ipa_name + ".txt")
+        ipa_name = self.project.format_ipa_name
+        name = os.path.join(self.project.short_application_id, "ipa", ipa_name + ".txt")
         text = "{}-请等待十分钟后从TestFlight测试此版本-{}({})".format(self.project.application_name,
                                                           self.project.version_name,
                                                           self.project.version_code)
@@ -95,7 +95,7 @@ class IOSBuild:
         # 1. 删除缓存
         self.__clean_archive()
         path = self.archive_file_path
-        scheme = self.project.get_scheme()
+        scheme = self.project.scheme
         xcworkspace = self.get_abspath(self.project.xcworkspace_name)
         configuration = str(self.export_type.value).replace(".appStore", "")
         xcodeproj = self.get_abspath(self.project.xcodeproj_name)
@@ -128,7 +128,7 @@ class IOSBuild:
 
     @property
     def export_ipa_path(self):
-        return os.path.join(self.export_ipa_dir, self.project.get_scheme() + ".ipa")
+        return os.path.join(self.export_ipa_dir, self.project.scheme + ".ipa")
 
     @property
     def archive_dir(self):

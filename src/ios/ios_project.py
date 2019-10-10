@@ -2,6 +2,8 @@ import os
 import re
 import time
 
+from src.error.error import BuildException
+
 
 class IOSProject:
     project_path: str
@@ -9,34 +11,55 @@ class IOSProject:
     application_name: str
     version_name: str
     version_code: str
-    info_plist_path: str = ""
     xcodeproj_name: str
     xcworkspace_name: str
     export_ipa_name: str
-    # 是否加载错误
-    is_load_error = False
-    # ipa 全称
-    _format_ipa_name = ""
 
     def __init__(self, path="ios"):
+        self._format_ipa_name = ""
+        self._info_plist_path = ""
         self.project_path = os.path.abspath(path)
-        # 加载信息
-        self.load_info()
+        self.__load_info()
 
-    def get_scheme(self):
-        scheme = self.xcodeproj_name.replace(".xcodeproj", "")
-        return scheme
+    @property
+    def scheme(self):
+        return self.xcodeproj_name.replace(".xcodeproj", "")
 
-    #  加载工程及应用信息
-    def load_info(self):
-        # 1. 查找 plist
-        self.find_plist_path(self.project_path, "Info.plist")
-        # 1.1 判断是否加载成功
-        self.is_load_error = not len(self.info_plist_path)
-        if self.is_load_error:
-            return
-        # 1.2 读取 plist 内容
-        with open(self.info_plist_path, 'r', errors="ignore") as f:
+    @property
+    def short_application_id(self):
+        return self.application_id.split(".")[-1]
+
+    @property
+    def format_ipa_name(self):
+        """
+        格式化ipa输出名称
+        :return:
+        """
+        if not len(self._format_ipa_name):
+            # 命名规则 = 包名最后一项 + 版本号 + 时间 + ipa
+            prefix = (self.short_application_id + "-" + self.version_name + "_" + self.version_code + "_")
+            self._format_ipa_name = prefix + time.strftime("%Y%m%d_%H.%M", time.localtime()) + ".ipa"
+        return self._format_ipa_name
+
+    def __load_info(self):
+        self.__load_plist_path(self.project_path)
+        if not len(self._info_plist_path):
+            raise BuildException("iOS 工程加载失败")
+        self.__load_version_info()
+        # 2. 读取工程信息
+        self.__load_xcode_project_info()
+        # 3. 读取应用 id
+        self.__load_application_id()
+        # 4. 判断是否加载成功
+        if not len(self.application_id) or not len(self.application_name):
+            raise BuildException("iOS 工程加载失败2")
+
+    def __load_version_info(self):
+        """
+        加载 plist版本信息
+        :return:
+        """
+        with open(self._info_plist_path, 'r', errors="ignore") as f:
             info_con = f.read()
             # 2. 读取应用名称
             pattern = r"<key>CFBundleDisplayName</key>.*\n.*<string>(.+)</string>"
@@ -48,24 +71,12 @@ class IOSProject:
             pattern = r"<key>CFBundleVersion</key>[\s\n]*<string>([\.|\S]+)</string>"
             result = re.search(pattern, info_con)
             self.version_code = result and result.group(1) or "1"
-            # 4. 先读取工程信息
-            self.load_xcode_project_info()
-            # 5. 再读取应用 id
-            self.load_application_id()
-            # 6. 判断是否加载成功
-            self.is_load_error = not len(
-                self.application_id) or not len(self.application_name)
 
-    # 格式化ipa输出名称
-    def get_format_ipa_name(self):
-        if not len(self._format_ipa_name):
-            # 命名规则 = 包名最后一项 + 版本号 + 时间 + ipa
-            prefix = (self.get_application_id_suffix() + "-" + self.version_name + "_" + self.version_code + "_")
-            self._format_ipa_name = prefix + time.strftime("%Y%m%d_%H.%M", time.localtime()) + ".ipa"
-        return self._format_ipa_name
-
-    # 加载 xcode 工程信息
-    def load_xcode_project_info(self):
+    def __load_xcode_project_info(self):
+        """
+        加载 xcode 工程信息
+        :return:
+        """
         items = os.listdir(self.project_path)
         for item in items:
             if item.endswith(".xcodeproj"):
@@ -73,23 +84,33 @@ class IOSProject:
             elif item.endswith(".xcworkspace"):
                 self.xcworkspace_name = item
 
-    # iOS 找到包名配置文件路径
-    def get_project_pbxproj_path(self):
-        return os.path.join(self.project_path, self.xcodeproj_name, "project.pbxproj")
-
-    # 加载应用 包名配置
-    def load_application_id(self):
+    def __load_application_id(self):
+        """
+        加载应用包名配置
+        :return:
+        """
         pattern = r"PRODUCT_BUNDLE_IDENTIFIER\s=\s(.*\.\w+);"
-        with open(self.get_project_pbxproj_path(), 'r', errors="ignore") as f:
+        with open(self.__get_project_pbxproj_path(), 'r', errors="ignore") as f:
             con = f.read()
             self.application_id = re.search(pattern, con).group(1)
 
-        # 应用 id 后缀
-    def get_application_id_suffix(self):
-        return self.application_id.split(".")[-1]
+    def __get_project_pbxproj_path(self):
+        """
+        iOS 找到包名配置文件路径
+        :return:
+        """
+        return os.path.join(self.project_path, self.xcodeproj_name, "project.pbxproj")
 
-    # 查找 plist - 递归5层目录查找
-    def find_plist_path(self, root, target, depth=5):
+        # 应用 id 后缀
+
+    def __load_plist_path(self, root, target="Info.plist", depth=5):
+        """
+        # 查找 plist - 递归5层目录查找
+        :param root: 路径
+        :param target: 文件名
+        :param depth:  深度
+        :return:
+        """
         # 遍历到指定深度
         if depth < 0:
             return
@@ -103,9 +124,9 @@ class IOSProject:
             # 是目录接着往下找
             path = os.path.join(root, item)
             if os.path.isdir(path):
-                self.find_plist_path(path, target, depth=depth - 1)
+                self.__load_plist_path(path, target, depth=depth - 1)
             elif item == target:
                 # 包涵 CFBundleDisplayName 才是真的
                 with open(path, 'r', errors='ignore') as f:
                     if "CFBundleDisplayName" in f.read():
-                        self.info_plist_path = path
+                        self._info_plist_path = path
