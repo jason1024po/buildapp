@@ -46,12 +46,14 @@ class IOSProject:
         if not len(self._info_plist_path):
             raise BuildException("iOS 工程加载失败")
         self.__load_version_info()
-        # 2. 读取工程信息
+        # 1. 读取工程信息
         self.__load_xcode_project_info()
-        # 3. 读取应用 id
+        # 2. 读取应用 id
         self.__load_application_id()
+        # 3. 加载应用名称
+        self.__load_application_name()
         # 4. 判断是否加载成功
-        if not len(self.application_id) or not len(self.application_name):
+        if not len(self.application_id) or not len(self.version_code):
             raise BuildException("iOS 工程加载失败2")
 
     def __load_version_info(self):
@@ -61,9 +63,6 @@ class IOSProject:
         """
         with open(self._info_plist_path, 'r', errors="ignore") as f:
             info_con = f.read()
-            # 2. 读取应用名称
-            pattern = r"<key>CFBundleDisplayName</key>.*\n.*<string>(.+)</string>"
-            self.application_name = re.search(pattern, info_con).group(1)
             # 3. 读取版本号
             pattern = r"<key>CFBundleShortVersionString</key>[\s\n]*<string>([\.|\S]+)</string>"
             result = re.search(pattern, info_con)
@@ -71,6 +70,17 @@ class IOSProject:
             pattern = r"<key>CFBundleVersion</key>[\s\n]*<string>([\.|\S]+)</string>"
             result = re.search(pattern, info_con)
             self.version_code = result and result.group(1) or "1"
+
+    def __load_application_name(self):
+        with open(self._info_plist_path, 'r', errors="ignore") as f:
+            info_con = f.read()
+            # 2. 读取应用名称 没有时取应用 id 最后面
+            pattern = r"<key>CFBundleDisplayName</key>.*\n.*<string>(.+)</string>"
+            results = re.search(pattern, info_con)
+            if results:
+                self.application_name = results.group(1)
+            else:
+                self.application_name = self.short_application_id
 
     def __load_xcode_project_info(self):
         """
@@ -101,8 +111,6 @@ class IOSProject:
         """
         return os.path.join(self.project_path, self.xcodeproj_name, "project.pbxproj")
 
-        # 应用 id 后缀
-
     def __load_plist_path(self, root, target="Info.plist", depth=5):
         """
         # 查找 plist - 递归5层目录查找
@@ -114,6 +122,11 @@ class IOSProject:
         # 遍历到指定深度
         if depth < 0:
             return
+        # 忽略目录
+        for v in ["Pods", "Tests", ".framework", ".app"]:
+            if v in root:
+                return
+
         # 读取目录
         items = os.listdir(root)
         # 遍历目录
@@ -128,5 +141,5 @@ class IOSProject:
             elif item == target:
                 # 包涵 CFBundleDisplayName 才是真的
                 with open(path, 'r', errors='ignore') as f:
-                    if "CFBundleDisplayName" in f.read():
+                    if "CFBundleName" in f.read():
                         self._info_plist_path = path

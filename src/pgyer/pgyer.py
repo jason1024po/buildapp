@@ -19,6 +19,7 @@ class PGY:
             raise BuildException("要上传的文件不存在:")
         print("开始上传: " + file_path)
         result = cls.__upload(file_path)
+        print("上传成功: https://www.pgyer.com/" + result['buildShortcutUrl'])
         return result
 
     @classmethod
