@@ -111,8 +111,6 @@ class IOSProject:
         """
         return os.path.join(self.project_path, self.xcodeproj_name, "project.pbxproj")
 
-        # 应用 id 后缀
-
     def __load_plist_path(self, root, target="Info.plist", depth=5):
         """
         # 查找 plist - 递归5层目录查找
