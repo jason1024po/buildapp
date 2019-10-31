@@ -48,7 +48,6 @@ class IOSBuild:
             result = PGY.upload(self.export_ipa_path)
             DingDing.send_with_pgy_response(result)
         except BuildException as e:
-            self.__send_failure_message(e.message)
             raise e
 
     # 上传到苹果
