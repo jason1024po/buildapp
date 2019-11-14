@@ -4,6 +4,9 @@ PGY_API_KEY = ""
 PGY_BUILD_INSTALL_TYPE = 2
 PGY_BUILD_PASSWORD = '123456'
 
+# fir配置
+FIR_API_TOKEN = ""
+
 # 钉钉配置-开发和正式分开配置，也可以一样
 DD_ACCESS_TOKEN_DEV = ""
 DD_ACCESS_TOKEN_PRO = ""
