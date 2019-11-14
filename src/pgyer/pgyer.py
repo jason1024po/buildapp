@@ -30,7 +30,12 @@ class PGY:
             # header 信息
             headers = {"enctype": "multipart/form-data"}
             # 字段数据
-            data = {"userKey": PGY_USER_KEY, "_api_key": PGY_API_KEY}
+            data = {
+                "userKey": PGY_USER_KEY,
+                "_api_key": PGY_API_KEY,
+                'buildInstallType': PGY_BUILD_INSTALL_TYPE,
+                'buildPassword': PGY_BUILD_PASSWORD
+            }
             # 开始请求
             try:
                 r = requests.post(cls.end_point, headers=headers, data=data, files=files)

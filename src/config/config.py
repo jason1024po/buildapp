@@ -1,6 +1,8 @@
 # 蒲公英配置
 PGY_USER_KEY = ""
 PGY_API_KEY = ""
+PGY_BUILD_INSTALL_TYPE = 2
+PGY_BUILD_PASSWORD = '123456'
 
 # 钉钉配置-开发和正式分开配置，也可以一样
 DD_ACCESS_TOKEN_DEV = ""
