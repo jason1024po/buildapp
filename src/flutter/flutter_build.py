@@ -7,6 +7,7 @@ class FlutterBuild:
     android_release_dir = "build/app/outputs/apk/release"
 
     def __init__(self, path="./"):
+        self.path = path
         self.project = FlutterProject(path)
 
     def build_apk(self):
